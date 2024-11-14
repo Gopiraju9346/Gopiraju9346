@@ -1,0 +1,119 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import requests
+from bs4 import BeautifulSoup
+
+URL = 'https://www.jiomart.com/c/groceries/2'
+
+page = requests.get(URL)
+
+page.status_code
+
+htmlCode = page.text
+soup = BeautifulSoup(htmlCode)
+
+htmlCode
+
+name = soup.find('div', attrs={'class' : 'plp-card-details-name line-clamp jm-body-xs jm-fc-primary-grey-80'})
+print(name.text)
+name = name.text
+x = name.strip()
+print(x)
+
+res_names=[]
+names = soup.find_all('div', attrs={'class' : 'plp-card-details-name line-clamp jm-body-xs jm-fc-primary-grey-80'})
+for i in names:
+  x=i.text
+  x=x.strip()
+  res_names.append(x)
+print(res_names)
+print(len(res_names))
+
+price = soup.find('span', attrs={'class' : 'jm-heading-xxs jm-mb-xxs'})
+print(price.text)
+price = price.text
+x = price.strip()
+print(x)
+
+res_prices = []
+prices = soup.find_all('span', attrs={'class' : 'jm-heading-xxs jm-mb-xxs'})
+for i in prices:
+    x = i.text
+    x = x.strip()
+    res_prices.append(x)
+print(res_prices)
+print(len(res_prices))
+
+details = soup.find('div', attrs={'class' : 'plp-card-details-container'})
+print(details.text)
+name = details.text
+x = name.strip()
+print(x)
+
+res_details=[]
+details = soup.find_all('div', attrs={'class' : 'plp-card-details-container'})
+for i in details:
+  x = i.text
+  x = x.strip()
+  res_details.append(x)
+
+main = []
+for details in res_details:
+  k = details.split("    ")
+  if len(k) == 3:
+    print(k)
+    main.append(k)
+    print("*************************")
+print(main)
+for i in main:
+  i[1] = i[1].split("  ")
+  i[2] = i[2].strip()
+print(main)
+names = []
+discounted_price = []
+actual_price = []
+discount_percent = []
+for i in main:
+  names.append(i[0])
+  discounted_price.append(i[1][0])
+  actual_price.append(i[1][1])
+  discount_percent.append(i[2])
+print(names)
+print(len(names))
+print(discounted_price)
+print(len(discounted_price))
+print(actual_price)
+print(len(actual_price))
+print(discount_percent)
+print(len(discount_percent))
+final_discounted_prices = []
+final_actual_prices = []
+for i in discounted_price:
+  i = i.replace("₹","")
+  i = i.replace(",","")
+  final_discounted_prices.append(i)
+for i in actual_price:
+  i = i.replace("₹","")
+  i = i.replace(",","")
+  final_actual_prices.append(i)
+print(names)
+print(final_discounted_prices)
+print(final_actual_prices)
+print(discount_percent)
+
+df = pd.DataFrame({'Product' : names , 'Discounted Price': final_discounted_prices , 'Actual Price' : final_actual_prices , 'Discount Percent' : discount_percent})
+df['Discounted Price'] = df['Discounted Price'].astype(float)
+df['Actual Price'] = df['Actual Price'].astype(float)
+df
+
+plt.hist(df['Discounted Price'], bins = 2, color='purple', alpha=0.7)
+plt.title('Histogram - Price Variation')
+plt.xlabel('Price')
+plt.ylabel('Frequency')
+plt.grid(axis='y')
+plt.show()
+
+plt.pie(df['Discounted Price'], labels=df['Product'], autopct = '%1.2f%%', startangle = 90)
+plt.axis('equal')
+plt.show()
